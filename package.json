@@ -10,11 +10,14 @@
     "test": "vitest",
     "cli": "ts-node scripts/cli.ts",
     "setup": "ts-node scripts/setup.ts",
-    "demo": "ts-node scripts/demo.ts"
+    "demo": "ts-node scripts/demo.ts",
+    "test:connection": "ts-node scripts/test-connection.ts",
+    "setup:hcs": "ts-node scripts/setup-hcs-topic.ts",
+    "validate": "ts-node scripts/validate-env.ts",
+    "test:transfer": "ts-node scripts/test-transfer.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.60.0",
-    "@hashgraphonline/standards-agent-kit": "^0.1.0",
     "express": "^4.21.0",
     "dotenv": "^16.4.0",
     "cors": "^2.8.5"
