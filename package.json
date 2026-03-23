@@ -1,0 +1,41 @@
+{
+  "name": "policyguard-agent",
+  "version": "1.0.0",
+  "description": "Human-in-the-loop AI Agent with PolicyGuard protection on Hedera",
+  "main": "dist/api/server.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/api/server.ts",
+    "start": "node dist/api/server.js",
+    "test": "vitest",
+    "cli": "ts-node scripts/cli.ts"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.60.0",
+    "@hashgraphonline/standards-agent-kit": "^0.1.0",
+    "express": "^4.21.0",
+    "dotenv": "^16.4.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [
+    "hedera",
+    "ai-agent",
+    "policyguard",
+    "hcs-10",
+    "web3",
+    "hackathon"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/policyguard-agent"
+  }
+}
