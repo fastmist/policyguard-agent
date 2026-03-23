@@ -9,7 +9,8 @@
     "start": "node dist/api/server.js",
     "test": "vitest",
     "cli": "ts-node scripts/cli.ts",
-    "setup": "ts-node scripts/setup.ts"
+    "setup": "ts-node scripts/setup.ts",
+    "demo": "ts-node scripts/demo.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.60.0",
