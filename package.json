@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Human-in-the-loop AI Agent with PolicyGuard protection on Hedera",
   "main": "dist/api/server.js",
+  "openclaw": {
+    "extensions": ["./openclaw-plugin/index.ts"]
+  },
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/api/server.ts",
@@ -36,11 +39,12 @@
     "policyguard",
     "hcs-10",
     "web3",
-    "hackathon"
+    "hackathon",
+    "openclaw"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/policyguard-agent"
+    "url": "https://github.com/fastmist/policyguard-agent"
   }
 }

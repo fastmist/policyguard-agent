@@ -1,0 +1,79 @@
+{
+  "id": "policyguard-agent",
+  "name": "PolicyGuard Agent",
+  "version": "1.0.0",
+  "description": "Human-in-the-loop AI Agent with PolicyGuard protection on Hedera",
+  "author": "fastmist",
+  "license": "MIT",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hederaAccountId": {
+        "type": "string",
+        "description": "Hedera account ID (e.g., 0.0.1234567)"
+      },
+      "hederaPrivateKey": {
+        "type": "string",
+        "description": "Hedera private key (ECDSA DER format)"
+      },
+      "hederaNetwork": {
+        "type": "string",
+        "enum": ["testnet", "mainnet"],
+        "default": "testnet"
+      },
+      "auditTopicId": {
+        "type": "string",
+        "description": "HCS topic ID for audit logs"
+      },
+      "autoApproveLowRisk": {
+        "type": "boolean",
+        "default": true,
+        "description": "Auto-approve LOW risk transactions (≤20 HBAR)"
+      },
+      "lowRiskThreshold": {
+        "type": "number",
+        "default": 20,
+        "description": "Threshold for LOW risk classification (HBAR)"
+      },
+      "serverPort": {
+        "type": "number",
+        "default": 3000,
+        "description": "PolicyGuard API server port"
+      }
+    }
+  },
+  "uiHints": {
+    "hederaAccountId": {
+      "label": "Hedera Account ID",
+      "placeholder": "0.0.1234567"
+    },
+    "hederaPrivateKey": {
+      "label": "Private Key",
+      "sensitive": true,
+      "placeholder": "3030020100300706..."
+    },
+    "hederaNetwork": {
+      "label": "Network"
+    },
+    "auditTopicId": {
+      "label": "HCS Audit Topic",
+      "placeholder": "0.0.xxxxxxx"
+    },
+    "autoApproveLowRisk": {
+      "label": "Auto-approve Low Risk"
+    },
+    "lowRiskThreshold": {
+      "label": "Low Risk Threshold (HBAR)"
+    },
+    "serverPort": {
+      "label": "Server Port"
+    }
+  },
+  "skills": ["SKILL.md"],
+  "install": {
+    "npmSpec": "policyguard-agent",
+    "localPath": "extensions/policyguard-agent",
+    "defaultChoice": "local"
+  }
+}
