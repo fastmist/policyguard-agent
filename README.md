@@ -1,141 +1,336 @@
-# PolicyGuard Agent - Hedera Hello Future Apex Hackathon 2026
+# PolicyGuard Agent
 
-> **赛道**: AI & Agents  
+> **Track**: AI & Agents  
 > **Bounty**: Hashgraph Online / OpenClaw  
-> **核心理念**: 让AI Agent拥有"道德暂停按钮"——任何交易都需要人类显式授权
+> **Core Concept**: Give AI Agents a "moral pause button" — every transaction requires explicit human authorization
+
+[![Hedera](https://img.shields.io/badge/Hedera-Testnet-00BC8F)](https://hashscan.io/testnet)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 🎯 项目介绍
+## 🎯 Project Overview
 
-**一句话**: 一个由PolicyGuard保护的人类监督型Hedera AI Agent，所有交易提案需经人类显式授权后上链执行，并永久记录HCS审计日志。
+**One-liner**: A PolicyGuard-protected, human-supervised Hedera AI Agent where all transaction proposals require explicit human approval before on-chain execution, with immutable HCS audit logs.
 
-**解决的痛点**:
-- AI Agent的"黑盒"问题 - 用户不知道Agent要做什么
-- 完全自主Agent的安全风险
-- 机构用户的合规需求
+**Problem Solved**:
+- AI Agent "black box" problem — users don't know what the Agent is doing
+- Security risks of fully autonomous agents
+- Compliance requirements for institutional users
 
-**核心创新**:
-1. **PolicyGuard拦截** - 所有交易必须经过审批
-2. **风险分级** - 自动评估LOW/MEDIUM/HIGH/CRITICAL
-3. **HCS审计** - 永久不可篡改的审批记录
-4. **凭证NFT** - 链上可验证的授权证明
+**Key Innovations**:
+1. **PolicyGuard Interceptor** — All transactions must be approved
+2. **Risk Classification** — Automatic LOW/MEDIUM/HIGH/CRITICAL assessment
+3. **HCS Audit Trail** — Permanent, tamper-proof approval records
+4. **Multi-Signature Support** — HIGH/CRITICAL risk requires multiple approvers
 
 ---
 
-## 🔄 系统流程
+## 🔄 System Flow
 
 ```
-┌──────────┐    1.提案     ┌──────────┐    2.拦截    ┌──────────┐
-│  AI Agent │ ────────────>│PolicyGuard│ ───────────>│ 人类审批  │
-└──────────┘               └──────────┘              └──────────┘
-     │                                                    │
-     │    5.执行 <──────────── 4.批准/拒绝 <───────────┘
-     ↓                         3.记录HCS
+┌──────────┐    1.Proposal   ┌──────────┐    2.Intercept  ┌──────────┐
+│  AI Agent │ ─────────────> │PolicyGuard│ ─────────────> │  Human   │
+└──────────┘                └──────────┘                │ Approval │
+     │                                                    │ Required │
+     │    5.Execute <────────── 4.Approve/Reject <────────┘
+     ↓                           3.Log to HCS
 ┌──────────┐
 │ Hedera   │
 │ Network  │
 └──────────┘
 ```
 
-**实时演示**:
+**Live Demo**:
 ```
-用户: "帮我把100 HBAR转给alice"
-Agent: "⏸️ 等待PolicyGuard审批 (Challenge: 106a5842fc5fce6f)"
-[用户点击批准]
-Agent: "✅ 交易已执行 - TX ID: 0.0.xxx - HCS记录: topic/0.0.xxx"
+User: "Send 100 HBAR to alice"
+Agent: "⏸️ Waiting for PolicyGuard approval (Challenge: pg_xxxx)"
+[User: "Approve pg_xxxx"]
+Agent: "✅ Transaction executed - TX: 0.0.xxx - HCS: topic/0.0.xxx"
 ```
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
+
+### Option 1: OpenClaw / Claude Code (Recommended)
+
+Install PolicyGuard as an OpenClaw skill:
 
 ```bash
-cd hedera-apex-hackathon-2026
-cp .env.example .env
-# 编辑 .env 填入你的Hedera账户
+# In OpenClaw or Claude Code
+agent install plugin policyguard-agent
 
+# Or clone and install manually
+git clone https://github.com/fastmist/policyguard-agent.git
+cd policyguard-agent
+agent install plugin .
+```
+
+Then interact naturally:
+```
+> Send 20 HBAR to contractor
+⏳ Challenge Created - Awaiting Your Approval
+Challenge ID: pg_1774273650782_ssstaa5bz
+
+> Approve pg_1774273650782_ssstaa5bz
+✅ Approval recorded. Need 1 more approval(s).
+
+> Approve pg_1774273650782_ssstaa5bz
+✅ Threshold met! Transaction executed.
+```
+
+### Option 2: Standalone Server
+
+```bash
+# Clone repository
+git clone https://github.com/fastmist/policyguard-agent.git
+cd policyguard-agent
+
+# Install dependencies
 npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your Hedera credentials:
+# HEDERA_ACCOUNT_ID=0.0.xxxxxx
+# HEDERA_PRIVATE_KEY=3030...
+
+# Start server
 npm run dev
 ```
 
-访问 http://localhost:3000 查看审批界面。
+Server runs on http://localhost:3000
 
-详细指南: [docs/QUICKSTART.md](./docs/QUICKSTART.md)
+### Option 3: CLI Mode
 
----
+```bash
+npm run cli
 
-## 📂 项目文档
-
-| 文档 | 内容 |
-|------|------|
-| [PROJECT_IDEA_POLICYGUARD.md](./docs/PROJECT_IDEA_POLICYGUARD.md) | **完整项目方案** - 核心概念、用户流程、评审对应 |
-| [INTEGRATION_CODE.md](./docs/INTEGRATION_CODE.md) | **核心代码** - PolicyGuard拦截器、Agent类、API、前端 |
-| [QUICKSTART.md](./docs/QUICKSTART.md) | **5分钟快速开始** - 开发环境搭建、测试脚本 |
-| [hackathon-rules.md](./docs/hackathon-rules.md) | 黑客松评审规则详解 |
-| [bounty-analysis.md](./docs/bounty-analysis.md) | Bounty分析与策略建议 |
-| [SUBMISSION.md](./SUBMISSION.md) | 提交清单 |
-
----
-
-## 📦 项目结构
-
-```
-hedera-apex-hackathon-2026/
-├── docs/                    # 项目文档
-│   ├── PROJECT_IDEA_POLICYGUARD.md   # 项目方案
-│   ├── INTEGRATION_CODE.md           # 核心代码
-│   ├── QUICKSTART.md                 # 快速开始
-│   ├── hackathon-rules.md            # 评审规则
-│   ├── bounty-analysis.md            # Bounty分析
-│   ├── project-plan.md               # 项目计划书
-│   ├── tech-stack.md                 # 技术栈选型
-│   └── DEVELOPMENT.md                # 开发指南
-├── repos/                   # 参考代码仓库
-│   ├── hedera-agent-kit-js/          # 官方Agent Kit
-│   ├── plugin-hedera-agent-kit/      # ElizaOS插件
-│   ├── standards-agent-kit/          # HCS-10标准
-│   └── conversational-agent/         # 参考实现
-├── src/                     # 项目源代码 (待开发)
-├── resources/               # 资源文件
-│   ├── pitch-deck/          # 路演PPT
-│   └── demo-video/          # Demo视频
-├── README.md                # 本文件
-├── SUBMISSION.md            # 提交清单
-└── OVERVIEW.md              # 总览索引
+# Interactive commands:
+> Send 20 HBAR to bob
+> Approve pg_xxxx
+> Show balance
+> List pending
 ```
 
 ---
 
-## 🏆 奖项策略
+## 📂 Project Structure
 
-**主赛道**: AI & Agents  
+```
+policyguard-agent/
+├── src/                          # Core source code
+│   ├── agent/                    # PolicyGuard Agent
+│   │   ├── policy-guard-interceptor.ts    # Approval logic
+│   │   ├── types.ts                       # TypeScript types
+│   │   └── index.ts                       # Main agent class
+│   ├── api/                      # REST API
+│   │   ├── server.ts             # Express server
+│   │   └── routes.ts             # API endpoints
+│   ├── hedera/                   # Hedera integration
+│   │   ├── index.ts              # Hedera service
+│   │   ├── hcs-client.ts         # HCS audit logging
+│   │   └── hts-client.ts         # NFT token minting
+│   └── utils/                    # Utilities
+│       ├── challenge-storage.ts  # File-based persistence
+│       └── risk-assessor.ts      # Risk classification
+├── openclaw-plugin/              # OpenClaw integration
+│   ├── bridge.ts                 # NL command parser
+│   └── index.ts                  # Plugin exports
+├── scripts/                      # Demo & utility scripts
+│   ├── demo-full.ts              # Full feature demo
+│   └── transfer-between-accounts.ts
+├── SKILL.md                      # OpenClaw skill documentation
+├── README.md                     # This file
+└── .env                          # Environment config
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```env
+# Hedera
+HEDERA_ACCOUNT_ID=0.0.xxxxxx
+HEDERA_PRIVATE_KEY=3030...        # ECDSA DER format
+HEDERA_NETWORK=testnet            # testnet or mainnet
+
+# PolicyGuard
+AUDIT_TOPIC_ID=0.0.xxxxxx         # HCS topic for audit logs
+AUTO_APPROVE_LOW_RISK=true        # Auto-approve ≤20 HBAR
+LOW_RISK_THRESHOLD=20             # LOW risk threshold
+
+# Server
+PORT=3000
+```
+
+### Risk Levels
+
+| Level | Amount | Requirement |
+|-------|--------|-------------|
+| 🟢 LOW | ≤20 HBAR | Auto-approve (if enabled) |
+| 🟡 MEDIUM | 21-100 HBAR | 1 approval |
+| 🟠 HIGH | 101-1000 HBAR | 2 of 3 approvals |
+| 🔴 CRITICAL | >1000 HBAR | 3 of 4 approvals + 1hr timelock |
+
+**Approver Roles**: CFO, CTO, Security Lead
+
+---
+
+## 💬 Natural Language Commands
+
+### Transfer Commands
+```
+Send [amount] HBAR to [recipient]
+Pay [recipient] [amount] HBAR
+Transfer [amount] HBAR to [account]
+```
+
+### Approval Commands
+```
+Approve [challenge-id]
+Approve [challenge-id] "[reason]"
+Reject [challenge-id] "[reason]"
+```
+
+### Query Commands
+```
+Show balance
+List pending
+Challenge status [challenge-id]
+Show audit logs
+```
+
+### Policy Configuration
+```
+Change auto-approve threshold to [amount] HBAR
+Set low risk max to [amount]
+Enable auto-approve
+Disable auto-approve
+```
+
+---
+
+## 🔒 Safety Rules
+
+### Critical: Human-in-the-Loop
+
+**❌ NEVER ALLOW**: LLM auto-approving challenges  
+**✅ REQUIRED**: User explicitly says "Approve [id]"
+
+### Implementation
+
+```typescript
+// WRONG - LLM auto-approves
+if (result.challengeId) {
+  await approveChallenge(result.challengeId); // ❌ VIOLATION
+}
+
+// CORRECT - LLM waits for user
+if (result.challengeId) {
+  return "Challenge created. Say: 'Approve pg_xxxx' to approve"; // ✅
+}
+```
+
+---
+
+## 📊 Demo Scripts
+
+### Full Feature Demo
+```bash
+npm run demo:full
+```
+Shows: Risk assessment, challenge creation, multi-sig approval, HCS audit.
+
+### User Journey Demo
+```bash
+npm run demo:user
+```
+End-to-end user experience simulation.
+
+### Simulation Mode
+```bash
+npm run demo:sim
+```
+Test without real Hedera transactions.
+
+---
+
+## 🔗 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/balance` | Account balance |
+| POST | `/api/proposal/transfer` | Create transfer proposal |
+| POST | `/api/challenge/:id/approve` | Approve challenge |
+| POST | `/api/challenge/:id/reject` | Reject challenge |
+| GET | `/api/challenge/:id/status` | Challenge status |
+| GET | `/api/challenges/pending` | List pending challenges |
+| GET | `/api/audit-logs` | HCS audit logs |
+
+---
+
+## 📦 Installation as OpenClaw Skill
+
+```bash
+# Install from GitHub
+agent install plugin https://github.com/fastmist/policyguard-agent.git
+
+# Or local installation
+git clone https://github.com/fastmist/policyguard-agent.git
+cd policyguard-agent
+agent install plugin .
+```
+
+The skill will be available as `policyguard` in OpenClaw/Claude Code.
+
+---
+
+## 🏆 Awards Strategy
+
+**Main Track**: AI & Agents  
 **Bounty**: Hashgraph Online ($8,000 + 100K HOL Points)
 
-**为何这个组合最优**:
-1. ✅ 完美契合 "AI & Agents" 赛道主题
-2. ✅ standards-agent-kit 原生支持 HCS-10/OpenConvAI
-3. ✅ PolicyGuard 是 OpenClaw 生态的一部分，可申请 OpenClaw Bounty
-4. ✅ 解决真实痛点，有明确的机构用户群体
+**Why This Combination**:
+1. ✅ Perfect fit for "AI & Agents" track theme
+2. ✅ Uses standards-agent-kit with HCS-10/OpenConvAI support
+3. ✅ PolicyGuard is part of OpenClaw ecosystem
+4. ✅ Solves real pain points for institutional users
 
 ---
 
-## ⏰ 关键时间
+## ⏰ Timeline
 
-- **提交截止**: 2026年3月23日 11:59 PM ET
-- **北京时间**: 2026年3月24日 11:59 AM
-- **评审期**: 3月24日 - 4月10日
-- **结果公布**: 4月27日
+- **Submission Deadline**: March 23, 2026 11:59 PM ET
+- **Beijing Time**: March 24, 2026 11:59 AM
+- **Review Period**: March 24 - April 10
+- **Results**: April 27
 
 ---
 
-## 🔗 重要链接
+## 🔗 Important Links
 
-- **黑客松页面**: https://hackathon.stackup.dev/web/events/hedera-hello-future-apex-hackathon-2026
-- **官网**: https://hellofuturehackathon.dev/
-- **文档**: https://docs.hedera.com/
+- **Hackathon**: https://hackathon.stackup.dev/web/events/hedera-hello-future-apex-hackathon-2026
+- **Website**: https://hellofuturehackathon.dev/
+- **Docs**: https://docs.hedera.com/
 - **Discord**: https://go.hellofuturehackathon.dev/apex-discord
+- **HashScan (Testnet)**: https://hashscan.io/testnet/account/0.0.8339596
+- **HCS Topic**: https://hashscan.io/testnet/topic/0.0.8342181
 
 ---
 
-**开始构建你的 PolicyGuard Agent!** 🛡️🤖
+## 🛡️ Test Account
+
+**Account ID**: `0.0.8339596`  
+**Network**: Testnet  
+**HCS Topic**: `0.0.8342181`
+
+View transactions: https://hashscan.io/testnet/account/0.0.8339596
+
+---
+
+**Build your PolicyGuard Agent!** 🛡️🤖
