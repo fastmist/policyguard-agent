@@ -9,7 +9,7 @@ export const RISK_THRESHOLDS = {
   CRITICAL: { maxAmount: Infinity, autoApprove: false, timeLock: 24 * 60 * 60 * 1000 }
 };
 
-export function assessRisk(proposal: Omit<TransactionProposal, 'riskLevel'>): TransactionProposal['riskLevel'] {
+export function assessRisk(proposal: Partial<TransactionProposal> & { amount?: number; type: string }): TransactionProposal['riskLevel'] {
   const amount = proposal.amount || 0;
   
   // Critical operations
