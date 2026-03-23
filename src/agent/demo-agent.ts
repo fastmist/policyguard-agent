@@ -23,15 +23,20 @@ export class DemoPolicyGuardedAgent {
   }
 
   async transfer(params: { to: string; amount: number; tokenId?: string }) {
-    const proposal: TransactionProposal = {
+    const proposalData = {
       id: `prop_${Date.now()}`,
-      type: 'TRANSFER',
+      type: 'TRANSFER' as const,
       from: '0.0.12345 (DEMO)',
       to: params.to,
       amount: params.amount,
       tokenId: params.tokenId || 'HBAR',
-      riskLevel: assessRisk({ ...params, type: 'TRANSFER' }),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      description: `Transfer ${params.amount} ${params.tokenId || 'HBAR'} to ${params.to}`
+    };
+    
+    const proposal: TransactionProposal = {
+      ...proposalData,
+      riskLevel: assessRisk(proposalData)
     };
 
     // Log to mock HCS

@@ -18,7 +18,8 @@ export class MockHederaClient {
   async submitTransaction(proposal: TransactionProposal): Promise<any> {
     // 模拟交易提交
     const txId = `0.0.${Date.now()}`;
-    this.balance -= proposal.amount;
+    const amount = proposal.amount || 0;
+    this.balance -= amount;
     
     this.transactions.push({
       txId,

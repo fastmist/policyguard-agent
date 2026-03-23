@@ -123,6 +123,14 @@ export class PolicyGuardedAgent {
   getPendingChallenges() {
     return this.interceptor.getPendingChallenges();
   }
+
+  /**
+   * Close connections and cleanup
+   */
+  close(): void {
+    // Close Hedera client connection
+    this.hedera.client.close();
+  }
 }
 
 export * from './types';

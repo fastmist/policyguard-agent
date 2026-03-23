@@ -25,6 +25,21 @@ export class HCSClient {
     return `${topicId}@${response.transactionId}`;
   }
 
+  async logEvent(eventType: string, data: any): Promise<string> {
+    const topicId = process.env.AUDIT_TOPIC_ID;
+    if (!topicId || topicId === '0.0.xxxxx') {
+      throw new Error('AUDIT_TOPIC_ID not configured. Run: npm run setup:hcs');
+    }
+    
+    const message = {
+      event: eventType,
+      timestamp: new Date().toISOString(),
+      ...data
+    };
+    
+    return this.submitMessage(topicId, message);
+  }
+
   async createAuditTopic(): Promise<string> {
     const { TopicCreateTransaction } = await import('@hashgraph/sdk');
     
