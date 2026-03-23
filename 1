@@ -1,0 +1,30 @@
+PrecheckStatusError: transaction 0.0.8339596@1774257768.327190364 failed precheck with status INVALID_SIGNATURE against node account id 0.0.3
+    at new PrecheckStatusError (/root/.openclaw/workspace/hedera-apex-hackathon-2026/node_modules/@hashgraph/sdk/lib/PrecheckStatusError.cjs:48:5)
+    at TopicCreateTransaction._mapStatusError (/root/.openclaw/workspace/hedera-apex-hackathon-2026/node_modules/@hashgraph/sdk/lib/transaction/Transaction.cjs:1787:12)
+    at TopicCreateTransaction.execute (/root/.openclaw/workspace/hedera-apex-hackathon-2026/node_modules/@hashgraph/sdk/lib/Executable.cjs:724:22)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async setupTopic (/root/.openclaw/workspace/hedera-apex-hackathon-2026/scripts/setup-hcs-topic.ts:31:20) {
+  status: Status { _code: 7 },
+  transactionId: TransactionId {
+    accountId: AccountId {
+      shard: [Long],
+      realm: [Long],
+      num: [Long],
+      aliasKey: null,
+      evmAddress: null,
+      _checksum: null
+    },
+    validStart: Timestamp { seconds: [Long], nanos: [Long] },
+    scheduled: false,
+    nonce: null
+  },
+  contractFunctionResult: null,
+  nodeId: AccountId {
+    shard: Long { low: 0, high: 0, unsigned: false },
+    realm: Long { low: 0, high: 0, unsigned: false },
+    num: Long { low: 3, high: 0, unsigned: false },
+    aliasKey: null,
+    evmAddress: null,
+    _checksum: null
+  }
+}

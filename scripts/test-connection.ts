@@ -24,7 +24,7 @@ async function runTests() {
   console.log('=' .repeat(50));
   console.log();
 
-  const hedera = new HederaService(accountId, privateKey);
+  const hedera = new HederaService(accountId!, privateKey!);
 
   // Test 1: Get Balance
   console.log('📊 Test 1: Checking Balance...');

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolicyGuard Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a3e;
+        }
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .challenge {
+            background: #16213e;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .challenge.low { border-left-color: #27ae60; }
+        .challenge.medium { border-left-color: #f39c12; }
+        .challenge.high { border-left-color: #e74c3c; }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .btn:hover { background: #5a6fd6; }
+        .btn.reject { background: #e74c3c; }
+        .btn.reject:hover { background: #c0392b; }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status.pending { background: #f39c12; color: #000; }
+        .status.approved { background: #27ae60; color: #fff; }
+        .log {
+            font-family: monospace;
+            font-size: 12px;
+            background: #0f0f1a;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry { padding: 5px 0; border-bottom: 1px solid #1a1a2e; }
+        .log-entry:last-child { border-bottom: none; }
+        .empty {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+        .demo-badge {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            🛡️ PolicyGuard Agent
+            <span class="demo-badge">DEMO MODE</span>
+        </h1>
+
+        <!-- Pending Challenges -->
+        <div class="card">
+            <h2>⏳ 待审批交易</h2>
+            <div id="pending-list">
+                <div class="empty">暂无待审批交易</div>
+            </div>
+        </div>
+
+        <!-- Create Transaction -->
+        <div class="card">
+            <h2>💸 发起转账</h2>
+            <input type="text" id="to" placeholder="目标账户 (如: 0.0.54321)" style="width: 200px; padding: 8px; margin-right: 10px; background: #0f0f1a; border: 1px solid #2a2a3e; color: #fff; border-radius: 4px;">
+            <input type="number" id="amount" placeholder="金额 (HBAR)" style="width: 120px; padding: 8px; margin-right: 10px; background: #0f0f1a; border: 1px solid #2a2a3e; color: #fff; border-radius: 4px;">
+            <button class="btn" onclick="createTransfer()">发起转账</button>
+        </div>
+
+        <!-- Audit Log -->
+        <div class="card">
+            <h2>📝 审计日志</h2>
+            <div id="audit-log" class="log">
+                <div class="log-entry">系统初始化完成...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data store
+        let challenges = [];
+        let logs = ['系统初始化完成...'];
+        let balance = 1000;
+
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.unshift(`[${timestamp}] ${message}`);
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('audit-log');
+            logDiv.innerHTML = logs.map(l => `<div class="log-entry">${l}</div>`).join('');
+        }
+
+        function updatePendingList() {
+            const list = document.getElementById('pending-list');
+            const pending = challenges.filter(c => c.status === 'PENDING');
+            
+            if (pending.length === 0) {
+                list.innerHTML = '<div class="empty">暂无待审批交易</div>';
+                return;
+            }
+
+            list.innerHTML = pending.map(c => `
+                <div class="challenge ${c.risk.toLowerCase()}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>转账 ${c.amount} HBAR</strong> → ${c.to}<br>
+                            <small>ID: ${c.id} | 风险: <span class="status pending">${c.risk}</span></small>
+                        </div>
+                        <div>
+                            <button class="btn" onclick="approve('${c.id}')">批准</button>
+                            <button class="btn reject" onclick="reject('${c.id}')">拒绝</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createTransfer() {
+            const to = document.getElementById('to').value || '0.0.54321';
+            const amount = parseFloat(document.getElementById('amount').value) || 10;
+            
+            // Risk assessment
+            let risk = 'LOW';
+            if (amount >= 1000) risk = 'CRITICAL';
+            else if (amount >= 100) risk = 'HIGH';
+            else if (amount >= 10) risk = 'MEDIUM';
+
+            const challenge = {
+                id: 'pg_' + Date.now(),
+                to,
+                amount,
+                risk,
+                status: 'PENDING',
+                timestamp: Date.now()
+            };
+
+            challenges.push(challenge);
+            addLog(`创建转账提案: ${amount} HBAR → ${to} [风险: ${risk}]`);
+            updatePendingList();
+
+            // Clear inputs
+            document.getElementById('to').value = '';
+            document.getElementById('amount').value = '';
+        }
+
+        function approve(id) {
+            const c = challenges.find(x => x.id === id);
+            if (!c) return;
+            
+            c.status = 'APPROVED';
+            balance -= c.amount;
+            
+            addLog(`✅ 批准交易: ${c.amount} HBAR → ${c.to}`);
+            addLog(`💰 余额更新: ${balance} HBAR`);
+            updatePendingList();
+        }
+
+        function reject(id) {
+            const c = challenges.find(x => x.id === id);
+            if (!c) return;
+            
+            c.status = 'REJECTED';
+            addLog(`❌ 拒绝交易: ${c.amount} HBAR → ${c.to}`);
+            updatePendingList();
+        }
+
+        // Add some demo data
+        setTimeout(() => {
+            challenges.push({
+                id: 'pg_demo_001',
+                to: '0.0.12345',
+                amount: 50,
+                risk: 'MEDIUM',
+                status: 'PENDING',
+                timestamp: Date.now()
+            });
+            addLog('Demo: 收到待审批交易');
+            updatePendingList();
+        }, 1000);
+    </script>
+</body>
+</html>

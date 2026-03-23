@@ -44,7 +44,7 @@ export class HCSClient {
     const { TopicCreateTransaction } = await import('@hashgraph/sdk');
     
     const transaction = new TopicCreateTransaction({
-      memo: 'PolicyGuard Agent Audit Log'
+      topicMemo: 'PolicyGuard Agent Audit Log'
     });
 
     const response = await transaction.execute(this.client);
@@ -64,8 +64,10 @@ export class HCSClient {
           this.client,
           (message) => {
             try {
-              const decoded = new TextDecoder().decode(message.contents);
-              logs.push(JSON.parse(decoded));
+              if (message && message.contents) {
+                const decoded = new TextDecoder().decode(message.contents);
+                logs.push(JSON.parse(decoded));
+              }
             } catch (e) {
               console.error('Failed to decode message:', e);
             }
