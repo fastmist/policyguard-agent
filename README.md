@@ -53,66 +53,42 @@ Agent: "✅ Transaction executed - TX: 0.0.xxx - HCS: topic/0.0.xxx"
 
 ## 🚀 Quick Start
 
-### Option 1: OpenClaw / Claude Code (Recommended)
+### Prerequisites
+- Node.js 18+ and npm
+- A Hedera Testnet account ([get one free](https://portal.hedera.com/register))
 
-Install PolicyGuard as an OpenClaw skill:
-
+### One-Line Setup
 ```bash
-# In OpenClaw or Claude Code
-agent install plugin policyguard-agent
-
-# Or clone and install manually
-git clone https://github.com/fastmist/policyguard-agent.git
-cd policyguard-agent
-agent install plugin .
+git clone https://github.com/fastmist/policyguard-agent.git && cd policyguard-agent && npm install && cp .env.example .env
 ```
 
-Then interact naturally:
-```
-> Send 20 HBAR to contractor
-⏳ Challenge Created - Awaiting Your Approval
-Challenge ID: pg_1774273650782_ssstaa5bz
+### Step-by-Step Guide
 
-> Approve pg_1774273650782_ssstaa5bz
-✅ Approval recorded. Need 1 more approval(s).
-
-> Approve pg_1774273650782_ssstaa5bz
-✅ Threshold met! Transaction executed.
-```
-
-### Option 2: Standalone Server
-
+**1. Configure your credentials:**
 ```bash
-# Clone repository
-git clone https://github.com/fastmist/policyguard-agent.git
-cd policyguard-agent
+nano .env
+# Add your Hedera Account ID and Private Key (DER format)
+```
 
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your Hedera credentials:
-# HEDERA_ACCOUNT_ID=0.0.xxxxxx
-# HEDERA_PRIVATE_KEY=3030...
-
-# Start server
+**2. Start the server:**
+```bash
 npm run dev
 ```
 
-Server runs on http://localhost:3000
-
-### Option 3: CLI Mode
-
+**3. Test the API:**
 ```bash
-npm run cli
-
-# Interactive commands:
-> Send 20 HBAR to bob
-> Approve pg_xxxx
-> Show balance
-> List pending
+curl http://localhost:3000/api/health
+curl http://localhost:3000/api/balance
 ```
+
+**4. Create a transaction:**
+```bash
+curl -X POST http://localhost:3000/api/proposal/transfer \
+  -H "Content-Type: application/json" \
+  -d '{"to":"0.0.1001","amount":10}'
+```
+
+📖 **[Detailed Quick Start Guide](./docs/QUICKSTART.md)** - Step-by-step with troubleshooting
 
 ---
 

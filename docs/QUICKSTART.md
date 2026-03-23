@@ -1,249 +1,254 @@
-# PolicyGuard + Hedera 快速启动指南
+# Quick Start Guide - PolicyGuard Agent
 
-> 5分钟上手 PolicyGuard Agent 开发
-
----
-
-## 🎯 项目核心概念
-
-```
-用户指令 → Agent生成提案 → PolicyGuard拦截 → 人类审批 → 链上执行 + HCS审计
-```
-
-这是一个**人类监督的AI Agent**——让AI有"道德暂停按钮"。
+A step-by-step guide to get PolicyGuard Agent running.
 
 ---
 
-## 🚀 5分钟快速开始
+## Prerequisites
 
-### 步骤1: 复制代码框架
+- Node.js 18+ and npm
+- Git
+- A Hedera Testnet account (free)
+
+---
+
+## Step 1: Get a Hedera Testnet Account
+
+### Option A: Hedera Portal (Recommended)
+1. Go to https://portal.hedera.com/register
+2. Create a free account
+3. Verify your email
+4. You'll receive:
+   - **Account ID** (e.g., `0.0.1234567`)
+   - **Private Key** (DER format, starts with `3030...`)
+
+### Option B: Testnet Faucet
+1. Go to https://portal.hedera.com/faucet
+2. Enter your account ID
+3. Receive 10,000 test HBAR
+
+---
+
+## Step 2: Clone and Install
 
 ```bash
-cd /root/.openclaw/workspace/hedera-apex-hackathon-2026
-mkdir -p src/{agent,api,frontend}
+# Clone the repository
+git clone https://github.com/fastmist/policyguard-agent.git
 
-# 核心文件已创建在 docs/INTEGRATION_CODE.md
-# 按下面的说明拆分使用
+# Enter directory
+cd policyguard-agent
+
+# Install dependencies
+npm install
 ```
 
-### 步骤2: 安装依赖
-
-```bash
-npm init -y
-
-# Hedera + Agent Kit
-npm install @hashgraphonline/standards-agent-kit
-
-# PolicyGuard (假设的包名，实际需要确认)
-npm install @openclaw/policyguard
-
-# API框架
-npm install express
-npm install --save-dev @types/express typescript
+Expected output:
 ```
-
-### 步骤3: 环境配置
-
-```bash
-cat > .env << 'EOF'
-# Hedera测试网 (从 https://portal.hedera.com/ 获取)
-HEDERA_ACCOUNT_ID=0.0.xxxxx
-HEDERA_PRIVATE_KEY=0x...
-
-# PolicyGuard
-POLICYGUARD_ENDPOINT=https://policyguard.openclaw.ai
-
-# HCS审计Topic (使用现有或创建新的)
-AUDIT_TOPIC_ID=0.0.xxxxx
-
-# 可选: OpenAI
-OPENAI_API_KEY=sk-...
-EOF
-```
-
-### 步骤4: 启动开发
-
-```bash
-# 初始化TypeScript
-npx tsc --init
-
-# 启动API服务
-npx ts-node src/api/server.ts
-
-# 前端 (在另一个终端)
-cd frontend && npm run dev
+added 234 packages in 12s
 ```
 
 ---
 
-## 📂 项目文件结构
+## Step 3: Configure Environment
 
+```bash
+# Copy example env file
+cp .env.example .env
+
+# Edit the file
+nano .env
 ```
-src/
-├── agent/
-│   ├── index.ts                 # Agent主类
-│   ├── policy-guard-interceptor.ts  # PolicyGuard拦截器
-│   └── types.ts                 # 类型定义
-├── api/
-│   ├── server.ts                # Express服务器
-│   └── routes.ts                # API路由
-├── hedera/
-│   ├── hcs-client.ts            # HCS操作封装
-│   └── hts-client.ts            # HTS操作封装
-└── utils/
-    └── risk-assessor.ts         # 风险评估
 
-frontend/
-├── components/
-│   ├── ApprovalCard.tsx         # 审批卡片
-│   ├── AgentObserver.tsx        # Agent观察台
-│   └── AuditLog.tsx             # 审计日志
-└── pages/
-    └── index.tsx                # 主页面
+Fill in your credentials:
+```env
+# Your Hedera Testnet Account
+HEDERA_ACCOUNT_ID=0.0.1234567          # Replace with your account ID
+HEDERA_PRIVATE_KEY=3030020100300706... # Replace with your private key (DER format)
+HEDERA_NETWORK=testnet
+
+# Audit Topic (will be auto-created if empty)
+AUDIT_TOPIC_ID=
+
+# Policy Settings
+AUTO_APPROVE_LOW_RISK=true
+LOW_RISK_THRESHOLD=20
+
+# Server
+PORT=3000
+```
+
+**Save and exit**: Press `Ctrl+O`, then `Enter`, then `Ctrl+X`
+
+---
+
+## Step 4: Start the Server
+
+```bash
+npm run dev
+```
+
+Expected output:
+```
+🛡️  PolicyGuard Agent Server
+═══════════════════════════════
+Server running on http://localhost:3000
+
+Environment:
+  Account: 0.0.1234567
+  Network: testnet
+  Audit Topic: 0.0.xxxxxxx
+```
+
+**The server is now running!**
+
+---
+
+## Step 5: Test the API
+
+Open a new terminal (keep the server running):
+
+```bash
+# Test health endpoint
+curl http://localhost:3000/api/health
+```
+
+Expected:
+```json
+{"status":"ok","timestamp":"2026-03-23T..."}
+```
+
+```bash
+# Check balance
+curl http://localhost:3000/api/balance
+```
+
+Expected:
+```json
+{"hbar":10000.0,"accountId":"0.0.1234567"}
 ```
 
 ---
 
-## 🎮 开发流程
+## Step 6: Create Your First Transaction
 
-### 1. 发起交易提案
+### Test 1: Auto-approved (LOW risk, ≤20 HBAR)
 
 ```bash
-curl -X POST http://localhost:3000/proposal/transfer \
+curl -X POST http://localhost:3000/api/proposal/transfer \
   -H "Content-Type: application/json" \
-  -d '{
-    "to": "0.0.54321",
-    "amount": 100
-  }'
+  -d '{"to":"0.0.1001","amount":10}'
 ```
 
-**返回**:
+Expected:
 ```json
 {
-  "success": false,
-  "message": "⏸️ 等待PolicyGuard审批 (Challenge: 106a5842fc5fce6f)"
+  "success": true,
+  "txId": "0.0.1234567@1774270000.000000000",
+  "message": "✅ Transaction executed successfully!"
 }
 ```
 
-### 2. 审批界面显示
-
-前端会自动显示待审批卡片：
-```
-┌──────────────────────────────────────┐
-│ 交易 #tx_123456789                   │
-│ 🔴 HIGH 风险                         │
-│ 类型: TRANSFER                       │
-│ 金额: 100 HBAR                       │
-│ 目标: 0.0.54321                      │
-│ Challenge: 106a5842fc5fce6f          │
-│                                      │
-│ [✅ 批准]  [❌ 拒绝]                 │
-└──────────────────────────────────────┘
-```
-
-### 3. 执行审批
+### Test 2: Manual approval (MEDIUM risk, 21-100 HBAR)
 
 ```bash
-# 手动审批 (实际应用中通过UI点击触发)
-/openclaw/policyguard/approve 106a5842fc5fce6f "批准转账"
+curl -X POST http://localhost:3000/api/proposal/transfer \
+  -H "Content-Type: application/json" \
+  -d '{"to":"0.0.1001","amount":50}'
 ```
 
-### 4. 交易执行
+Expected:
+```json
+{
+  "challengeId": "pg_1774270000000_xxxxxxxx",
+  "proposal": {
+    "amount": 50,
+    "riskLevel": "MEDIUM"
+  }
+}
+```
 
-审批通过后，Agent自动执行：
-```
-✅ 交易已执行
-- TX ID: 0.0.12345@1711180800.123
-- PolicyGuard: 106a5842fc5fce6f
-- Approval NFT: 0.0.99999
-- HCS记录: topic/0.0.67890/seq/123
-```
+**The challenge is now PENDING approval.**
 
 ---
 
-## 🔧 核心配置
+## Step 7: Approve the Challenge
 
-### 风险分级阈值
-
-```typescript
-// src/utils/risk-assessor.ts
-export const RISK_THRESHOLDS = {
-  LOW: { maxAmount: 10, autoApprove: true },
-  MEDIUM: { maxAmount: 100, autoApprove: false },
-  HIGH: { maxAmount: 1000, autoApprove: false, requireConfirm: true },
-  CRITICAL: { maxAmount: Infinity, autoApprove: false, timeLock: 24 * 60 * 60 * 1000 }
-};
+```bash
+# Replace pg_xxxx with your actual challenge ID from Step 6
+curl -X POST "http://localhost:3000/api/challenge/pg_1774270000000_xxxxxxxx/approve" \
+  -H "Content-Type: application/json" \
+  -d '{"role":"CFO","reason":"Test approval"}'
 ```
 
-### 自动批准规则
-
-```typescript
-// 低风险交易可配置自动批准
-if (riskLevel === 'LOW' && config.autoApproveLowRisk) {
-  return { approved: true, auto: true };
+Expected:
+```json
+{
+  "success": true,
+  "message": "Threshold met! 1 approvals received. Executing transaction...",
+  "thresholdMet": true
 }
 ```
 
 ---
 
-## 🧪 测试脚本
+## Step 8: Verify on HashScan
 
-```bash
-# 测试1: 低风险转账 (可能自动批准)
-curl -X POST http://localhost:3000/proposal/transfer \
-  -d '{"to": "0.0.54321", "amount": 5}'
+1. Open https://hashscan.io/testnet
+2. Search for your account ID (e.g., `0.0.1234567`)
+3. See your transactions
 
-# 测试2: 高风险转账 (必须人工批准)
-curl -X POST http://localhost:3000/proposal/transfer \
-  -d '{"to": "0.0.54321", "amount": 500}'
-
-# 测试3: 代币销毁 (CRITICAL级别)
-curl -X POST http://localhost:3000/proposal/burn \
-  -d '{"tokenId": "0.0.88888", "amount": 1000}'
-
-# 查询审计日志
-curl http://localhost:3000/audit-log
-
-# 查询余额
-curl http://localhost:3000/balance
+Or directly:
+```
+https://hashscan.io/testnet/account/0.0.1234567
 ```
 
 ---
 
-## 📊 黑客松加分项
+## Troubleshooting
 
-| 功能 | 技术亮点 | 评审维度 |
-|-----|---------|---------|
-| HCS审计日志 | 永久不可篡改的审批记录 | Integration(15%) |
-| HTS审批凭证NFT | 链上可验证的授权证明 | Innovation(10%) |
-| 风险分级系统 | 智能风险评估算法 | Execution(20%) |
-| 多签支持 | 企业级安全方案 | Feasibility(10%) |
-| 紧急暂停 | 安全兜底机制 | Success(20%) |
+### Error: "INVALID_SIGNATURE"
+**Cause**: Using ED25519 key instead of ECDSA
+
+**Fix**: In Hedera Portal, download the **ECDSA** key (starts with `3030...`)
+
+### Error: "INSUFFICIENT_PAYER_BALANCE"
+**Cause**: Account has no test HBAR
+
+**Fix**: Get test HBAR from https://portal.hedera.com/faucet
+
+### Error: "EADDRINUSE: address already in use :::3000"
+**Cause**: Port 3000 is in use
+
+**Fix**:
+```bash
+# Kill process on port 3000
+fuser -k 3000/tcp
+
+# Or use different port
+PORT=3001 npm run dev
+```
+
+### Error: "Module not found"
+**Cause**: Dependencies not installed
+
+**Fix**:
+```bash
+rm -rf node_modules
+npm install
+```
 
 ---
 
-## 🆘 常见问题
+## Next Steps
 
-### Q: PolicyGuard审批太慢？
-**A**: 可以配置自动批准低风险的策略，只拦截高风险交易。
-
-### Q: HCS消息费用？
-**A**: Hedera HCS每条消息约$0.0001，1000条消息才$0.1。
-
-### Q: 如何演示？
-**A**: 准备3个场景：
-1. 正常转账（展示基础流程）
-2. 高风险交易（展示风险分级）
-3. 查看审计日志（展示HCS集成）
+- Read [README.md](../README.md) for full documentation
+- Try the [OpenClaw Plugin](../openclaw-plugin/) for natural language interface
+- Explore the [Demo Scripts](../scripts/)
 
 ---
 
-## 📞 获取帮助
+## One-Line Summary
 
-- **PolicyGuard**: 使用 `/policy help` 查看命令
-- **Hedera文档**: https://docs.hedera.com/
-- **Agent Kit**: 查看 `repos/standards-agent-kit/README.md`
-
----
-
-**现在就开始构建吧！** 🚀
+```bash
+git clone https://github.com/fastmist/policyguard-agent.git && cd policyguard-agent && npm install && cp .env.example .env && echo "Edit .env with your credentials" && npm run dev
+```
