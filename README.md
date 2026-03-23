@@ -57,35 +57,35 @@ Agent: "✅ Transaction executed - TX: 0.0.xxx - HCS: topic/0.0.xxx"
 - Node.js 18+ and npm
 - A Hedera Testnet account ([get one free](https://portal.hedera.com/register))
 
-### One-Line Setup
-```bash
-git clone https://github.com/fastmist/policyguard-agent.git && cd policyguard-agent && npm install && cp .env.example .env
-```
+### Option 1: OpenClaw (Recommended)
 
-### Step-by-Step Guide
-
-**1. Configure your credentials:**
 ```bash
-nano .env
-# Add your Hedera Account ID and Private Key (DER format)
-```
+# Install via ClawHub (when published)
+clawhub install policyguard-agent
 
-**2. Start the server:**
-```bash
+# Or clone to OpenClaw skills directory
+git clone https://github.com/fastmist/policyguard-agent.git ~/.openclaw/skills/policyguard-agent
+cd ~/.openclaw/skills/policyguard-agent
+npm install
+cp .env.example .env
+# Edit .env with your Hedera credentials
 npm run dev
 ```
 
-**3. Test the API:**
+Verify installation:
 ```bash
-curl http://localhost:3000/api/health
-curl http://localhost:3000/api/balance
+openclaw skills list
+# Should show: policyguard-agent
 ```
 
-**4. Create a transaction:**
+### Option 2: Standalone
+
 ```bash
-curl -X POST http://localhost:3000/api/proposal/transfer \
-  -H "Content-Type: application/json" \
-  -d '{"to":"0.0.1001","amount":10}'
+git clone https://github.com/fastmist/policyguard-agent.git
+cd policyguard-agent
+npm install && cp .env.example .env
+# Edit .env with your credentials
+npm run dev
 ```
 
 📖 **[Detailed Quick Start Guide](./docs/QUICKSTART.md)** - Step-by-step with troubleshooting
