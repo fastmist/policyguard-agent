@@ -104,10 +104,10 @@ export class PolicyGuardedAgent {
   }
 
   /**
-   * Approve a pending challenge (called from external API/cli)
+   * Approve a pending challenge (supports multi-sig)
    */
-  async approveChallenge(challengeId: string, reason?: string): Promise<boolean> {
-    return this.interceptor.approveChallenge(challengeId, reason);
+  async approveChallenge(challengeId: string, role?: string, reason?: string): Promise<{ success: boolean; message: string; thresholdMet?: boolean }> {
+    return this.interceptor.approveChallenge(challengeId, role || 'Admin', reason);
   }
 
   /**

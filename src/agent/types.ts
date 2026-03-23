@@ -19,6 +19,7 @@ export interface PolicyGuardDecision {
   approvalToken?: string;
   reason?: string;
   autoApproved?: boolean;
+  approvers?: string[];
 }
 
 export interface AuditLogEntry {

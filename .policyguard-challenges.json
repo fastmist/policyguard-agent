@@ -1,0 +1,118 @@
+{
+  "pg_1774270774695_e2rbckifl": {
+    "proposal": {
+      "id": "tx_1774270771723",
+      "type": "TRANSFER",
+      "to": "0.0.2002",
+      "amount": 102,
+      "from": "0.0.8339596",
+      "description": "Transfer 102 HBAR to 0.0.2002",
+      "riskLevel": "HIGH",
+      "timestamp": 1774270771724
+    },
+    "status": "APPROVED",
+    "riskLevel": "HIGH",
+    "approvers": [
+      {
+        "role": "CFO",
+        "approvedAt": 1774270791705,
+        "reason": "Verified invoice #1234"
+      },
+      {
+        "role": "CTO",
+        "approvedAt": 1774270800309,
+        "reason": "Technical review complete"
+      }
+    ],
+    "requiredApprovals": 2,
+    "createdAt": 1774270774696,
+    "approvedAt": 1774270800309
+  },
+  "pg_1774271957704_4qr10xxlu": {
+    "proposal": {
+      "id": "tx_1774271952121",
+      "type": "TRANSFER",
+      "to": "0.0.2002",
+      "amount": 102,
+      "from": "0.0.8339596",
+      "description": "Transfer 102 HBAR to 0.0.2002",
+      "riskLevel": "HIGH",
+      "timestamp": 1774271952121
+    },
+    "status": "APPROVED",
+    "riskLevel": "HIGH",
+    "approvers": [
+      {
+        "role": "CFO",
+        "approvedAt": 1774271975335,
+        "reason": "Verified contractor invoice"
+      },
+      {
+        "role": "CTO",
+        "approvedAt": 1774271980416,
+        "reason": "Technical requirements validated"
+      }
+    ],
+    "requiredApprovals": 2,
+    "createdAt": 1774271957704,
+    "approvedAt": 1774271980416
+  },
+  "pg_1774273243579_24e98ipjk": {
+    "proposal": {
+      "id": "tx_1774273242044",
+      "type": "TRANSFER",
+      "to": "0.0.2002",
+      "amount": 102,
+      "from": "0.0.8339596",
+      "description": "Transfer 102 HBAR to 0.0.2002",
+      "riskLevel": "HIGH",
+      "timestamp": 1774273242044
+    },
+    "status": "APPROVED",
+    "riskLevel": "HIGH",
+    "approvers": [
+      {
+        "role": "CTO",
+        "approvedAt": 1774273264278,
+        "reason": "Technical OK"
+      },
+      {
+        "role": "CFO",
+        "approvedAt": 1774273264279,
+        "reason": "Invoice verified"
+      }
+    ],
+    "requiredApprovals": 2,
+    "createdAt": 1774273243579,
+    "approvedAt": 1774273264279
+  },
+  "pg_1774273650782_ssstaa5bz": {
+    "proposal": {
+      "id": "tx_1774273647762",
+      "type": "TRANSFER",
+      "to": "0.0.2002",
+      "amount": 102,
+      "from": "0.0.8339596",
+      "description": "Transfer 102 HBAR to 0.0.2002",
+      "riskLevel": "HIGH",
+      "timestamp": 1774273647762
+    },
+    "status": "APPROVED",
+    "riskLevel": "HIGH",
+    "approvers": [
+      {
+        "role": "CFO",
+        "approvedAt": 1774273693390,
+        "reason": "User approved"
+      },
+      {
+        "role": "CTO",
+        "approvedAt": 1774273775527,
+        "reason": "Second approver confirmed"
+      }
+    ],
+    "requiredApprovals": 2,
+    "createdAt": 1774273650782,
+    "approvedAt": 1774273775528
+  }
+}

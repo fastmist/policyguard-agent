@@ -1,7 +1,6 @@
-// src/api/routes.ts
-
 import { Router } from 'express';
 import { PolicyGuardedAgent } from '../agent';
+import { ChallengeStorage } from '../utils/challenge-storage';
 
 export function createRoutes(agent: PolicyGuardedAgent): Router {
   const router = Router();
@@ -39,20 +38,27 @@ export function createRoutes(agent: PolicyGuardedAgent): Router {
     }
   });
 
-  // Approve a challenge
+  // Approve a challenge (multi-sig support)
   router.post('/challenge/:challengeId/approve', async (req, res) => {
     try {
       const { challengeId } = req.params;
-      const { reason } = req.body;
+      const { reason, role } = req.body;
       
-      const success = await agent.approveChallenge(challengeId, reason);
+      // Default role if not provided
+      const approverRole = role || 'Admin';
       
-      if (success) {
-        res.json({ success: true, message: 'Challenge approved' });
+      const result = await agent.approveChallenge(challengeId, approverRole, reason);
+      
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: result.message,
+          thresholdMet: result.thresholdMet
+        });
       } else {
-        res.status(404).json({ 
+        res.status(400).json({ 
           success: false, 
-          message: 'Challenge not found or already decided' 
+          message: result.message 
         });
       }
     } catch (error: any) {
@@ -75,6 +81,22 @@ export function createRoutes(agent: PolicyGuardedAgent): Router {
           success: false, 
           message: 'Challenge not found or already decided' 
         });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get challenge status (with multi-sig progress)
+  router.get('/challenge/:challengeId/status', (req, res) => {
+    try {
+      const { challengeId } = req.params;
+      const status = ChallengeStorage.getStatus(challengeId);
+      
+      if (status) {
+        res.json(status);
+      } else {
+        res.status(404).json({ error: 'Challenge not found' });
       }
     } catch (error: any) {
       res.status(500).json({ error: error.message });

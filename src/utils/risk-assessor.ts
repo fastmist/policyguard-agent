@@ -3,7 +3,7 @@
 import { TransactionProposal } from '../agent/types';
 
 export const RISK_THRESHOLDS = {
-  LOW: { maxAmount: 10, autoApprove: true },
+  LOW: { maxAmount: 20, autoApprove: true },
   MEDIUM: { maxAmount: 100, autoApprove: false },
   HIGH: { maxAmount: 1000, autoApprove: false },
   CRITICAL: { maxAmount: Infinity, autoApprove: false, timeLock: 24 * 60 * 60 * 1000 }
@@ -19,7 +19,7 @@ export function assessRisk(proposal: Partial<TransactionProposal> & { amount?: n
   // Amount-based risk
   if (amount > 1000) return 'CRITICAL';
   if (amount > 100) return 'HIGH';
-  if (amount > 10) return 'MEDIUM';
+  if (amount > 20) return 'MEDIUM';
   
   return 'LOW';
 }

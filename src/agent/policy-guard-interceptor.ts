@@ -1,21 +1,19 @@
-// src/agent/policy-guard-interceptor.ts
-
 import { TransactionProposal, PolicyGuardDecision, AgentConfig } from './types';
 import { HCSClient } from '../hedera/hcs-client';
 import { HTSClient } from '../hedera/hts-client';
 import { assessRisk, shouldAutoApprove } from '../utils/risk-assessor';
-import { ChallengeStorage } from '../utils/challenge-storage';
+import { ChallengeStorage, MULTISIG_CONFIG } from '../utils/challenge-storage';
 
 /**
- * PolicyGuard Interceptor - Simulates the PolicyGuard challenge/approval flow
- * In production, this would call the actual PolicyGuard API
+ * PolicyGuard Interceptor with Multi-Signature Support
+ * Handles risk-based approval workflows with configurable thresholds
  */
 export class PolicyGuardInterceptor {
   private hcs: HCSClient;
   private hts: HTSClient;
   private auditTopicId: string;
   private autoApproveLowRisk: boolean;
-  private pendingChallenges: Map<string, { resolve: Function; reject: Function }> = new Map();
+  private pendingChallenges: Map<string, { resolve: Function; reject: Function; proposal: TransactionProposal }> = new Map();
 
   constructor(config: AgentConfig) {
     this.hcs = new HCSClient(config.hederaAccountId, config.hederaPrivateKey);
@@ -49,19 +47,23 @@ export class PolicyGuardInterceptor {
       };
     }
 
-    // 4. Create PolicyGuard challenge (simulated)
+    // 4. Create PolicyGuard challenge with multi-sig
     const challengeId = `pg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Save to file storage for CLI persistence
-    ChallengeStorage.create(challengeId, proposal);
+    // Save to file storage with multi-sig config
+    ChallengeStorage.create(challengeId, proposal, proposal.riskLevel);
+    
+    const config = MULTISIG_CONFIG[proposal.riskLevel];
     
     console.log(`🛡️ PolicyGuard Challenge created: ${challengeId}`);
-    console.log(`   Proposal: ${proposal.type} | Amount: ${proposal.amount} | Risk: ${proposal.riskLevel}`);
-    console.log(`   Use: /approve ${challengeId} "reason" to approve`);
-    console.log(`   Or:  /reject ${challengeId} "reason" to reject`);
+    console.log(`   Proposal: ${proposal.type} | Amount: ${proposal.amount} HBAR | Risk: ${proposal.riskLevel}`);
+    console.log(`   Multi-sig: ${config.required} of ${config.roles.length} approvers required`);
+    console.log(`   Eligible roles: ${config.roles.join(', ')}`);
+    console.log(`   Use: /approve ${challengeId} <role> "reason"`);
+    console.log(`   Or:  /reject ${challengeId} "reason"`);
 
-    // 5. Wait for manual decision (simulated via method call)
-    const decision = await this.waitForDecision(challengeId, proposal);
+    // 5. Wait for multi-sig approval threshold
+    const decision = await this.waitForMultiSigApproval(challengeId, proposal);
 
     // 6. Log decision
     await this.logToHCS({
@@ -69,59 +71,48 @@ export class PolicyGuardInterceptor {
       proposal,
       challengeId,
       decision: decision.approved ? 'APPROVED' : 'REJECTED',
+      approvers: decision.approvers,
       timestamp: Date.now()
     });
-
-    if (decision.approved) {
-      // 7. Mint approval NFT
-      try {
-        const approvalToken = await this.hts.mintApprovalToken(
-          process.env.APPROVAL_TOKEN_ID || '0.0.12345',
-          {
-            proposalId: proposal.id,
-            challengeId,
-            approvedAt: Date.now(),
-            expiresAt: Date.now() + 3600000,
-            riskLevel: proposal.riskLevel
-          }
-        );
-        
-        decision.approvalToken = `${approvalToken.tokenId}@${approvalToken.serialNumber}`;
-      } catch (e) {
-        console.warn('Failed to mint approval token:', e);
-      }
-    }
 
     return decision;
   }
 
   /**
-   * External method to approve a challenge (called from API/cli)
+   * Add approval to a challenge (supports multi-sig)
    */
-  async approveChallenge(challengeId: string, reason?: string): Promise<boolean> {
-    // First try in-memory
-    const pending = this.pendingChallenges.get(challengeId);
-    if (pending) {
-      pending.resolve({
-        approved: true,
-        challengeId,
-        reason: reason || 'Approved by user'
-      });
-      this.pendingChallenges.delete(challengeId);
-      return true;
+  async approveChallenge(challengeId: string, role: string, reason?: string): Promise<{ success: boolean; message: string; thresholdMet?: boolean }> {
+    // Add approval to storage
+    const result = ChallengeStorage.addApproval(challengeId, role, reason || 'Approved');
+    
+    if (result.thresholdMet) {
+      // Resolve the pending promise if threshold met
+      const pending = this.pendingChallenges.get(challengeId);
+      if (pending) {
+        const challenge = ChallengeStorage.get(challengeId);
+        pending.resolve({
+          approved: true,
+          challengeId,
+          reason: `Multi-sig threshold met: ${challenge?.approvers.length} approvals`,
+          approvers: challenge?.approvers.map(a => a.role)
+        });
+        this.pendingChallenges.delete(challengeId);
+      }
     }
     
-    // Fallback to file storage (for CLI persistence)
-    return ChallengeStorage.approve(challengeId, reason || 'Approved by user');
+    return result;
   }
 
   /**
-   * External method to reject a challenge
+   * Reject a challenge
    */
   async rejectChallenge(challengeId: string, reason?: string): Promise<boolean> {
-    // First try in-memory
+    // First check in-memory
     const pending = this.pendingChallenges.get(challengeId);
-    if (pending) {
+    
+    const rejected = ChallengeStorage.reject(challengeId, reason || 'Rejected by user');
+    
+    if (rejected && pending) {
       pending.resolve({
         approved: false,
         challengeId,
@@ -131,31 +122,49 @@ export class PolicyGuardInterceptor {
       return true;
     }
     
-    // Fallback to file storage (for CLI persistence)
-    return ChallengeStorage.reject(challengeId, reason || 'Rejected by user');
+    return rejected;
   }
 
-  private async waitForDecision(
+  /**
+   * Get challenge status with multi-sig progress
+   */
+  getChallengeStatus(challengeId: string): { status: string; approvers: string[]; required: number; progress: string } | null {
+    return ChallengeStorage.getStatus(challengeId);
+  }
+
+  private async waitForMultiSigApproval(
     challengeId: string, 
     proposal: TransactionProposal,
     timeoutMs: number = 300000
   ): Promise<PolicyGuardDecision> {
     return new Promise((resolve, reject) => {
       // Store resolver for external approval
-      this.pendingChallenges.set(challengeId, { resolve, reject });
+      this.pendingChallenges.set(challengeId, { resolve, reject, proposal });
 
-      // Poll file storage for CLI decisions
+      // Poll file storage for approval updates
       const checkInterval = setInterval(() => {
         const stored = ChallengeStorage.get(challengeId);
-        if (stored && stored.status !== 'PENDING') {
-          clearInterval(checkInterval);
-          clearTimeout(timeout);
-          this.pendingChallenges.delete(challengeId);
-          resolve({
-            approved: stored.status === 'APPROVED',
-            challengeId,
-            reason: stored.decision?.reason || `Decision from file storage: ${stored.status}`
-          });
+        if (stored) {
+          if (stored.status === 'APPROVED') {
+            clearInterval(checkInterval);
+            clearTimeout(timeout);
+            this.pendingChallenges.delete(challengeId);
+            resolve({
+              approved: true,
+              challengeId,
+              reason: `Multi-sig approved by: ${stored.approvers.map(a => a.role).join(', ')}`,
+              approvers: stored.approvers.map(a => a.role)
+            });
+          } else if (stored.status === 'REJECTED') {
+            clearInterval(checkInterval);
+            clearTimeout(timeout);
+            this.pendingChallenges.delete(challengeId);
+            resolve({
+              approved: false,
+              challengeId,
+              reason: stored.rejectionReason || 'Rejected'
+            });
+          }
         }
       }, 500);
 
@@ -183,8 +192,7 @@ export class PolicyGuardInterceptor {
     }
   }
 
-  getPendingChallenges(): Array<{ challengeId: string; proposal: TransactionProposal }> {
-    // Return list from file storage for CLI persistence
-    return ChallengeStorage.listPending();
+  getPendingChallenges(): Array<{ challengeId: string; proposal: TransactionProposal; approvers: string[]; required: number }> {
+    return ChallengeStorage.listPending() as any;
   }
 }
