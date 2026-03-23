@@ -250,22 +250,6 @@ Test without real Hedera transactions.
 
 ---
 
-## 📦 Installation as OpenClaw Skill
-
-```bash
-# Install from GitHub
-agent install plugin https://github.com/fastmist/policyguard-agent.git
-
-# Or local installation
-git clone https://github.com/fastmist/policyguard-agent.git
-cd policyguard-agent
-agent install plugin .
-```
-
-The skill will be available as `policyguard` in OpenClaw/Claude Code.
-
----
-
 ## 🏆 Awards Strategy
 
 **Main Track**: AI & Agents  

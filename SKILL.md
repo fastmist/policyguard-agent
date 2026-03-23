@@ -19,6 +19,8 @@ PolicyGuard Agent intercepts AI-initiated transactions and requires human approv
 
 ## Installation
 
+PolicyGuard Agent runs as a standalone server. OpenClaw (or any AI assistant) interacts with it via REST API.
+
 ```bash
 # Clone the repository
 git clone https://github.com/fastmist/policyguard-agent.git
@@ -29,15 +31,29 @@ npm install
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your Hedera credentials
+# Edit .env with your Hedera credentials:
+# - HEDERA_ACCOUNT_ID (e.g., 0.0.1234567)
+# - HEDERA_PRIVATE_KEY (DER format, starts with 3030...)
 
 # Start the server
 npm run dev
 ```
 
+The server runs on `http://localhost:3000`. OpenClaw communicates with it via API calls.
+
 ## OpenClaw Integration
 
-This skill enables natural language interaction with PolicyGuard through OpenClaw.
+OpenClaw (or Claude Code) can interact with PolicyGuard Agent via its REST API. The `openclaw-plugin/bridge.ts` provides natural language parsing that can be integrated into your OpenClaw workflow.
+
+### How It Works
+
+1. **User** sends natural language command to OpenClaw
+2. **OpenClaw** parses the command using the bridge
+3. **OpenClaw** calls PolicyGuard API at `localhost:3000`
+4. **PolicyGuard** creates challenge or executes transaction
+5. **OpenClaw** returns result to user
+
+**Important**: The LLM (OpenClaw/Claude) MUST NEVER auto-approve. It creates challenges and waits for explicit user approval.
 
 ### Supported Commands
 
