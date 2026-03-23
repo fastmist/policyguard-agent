@@ -19,37 +19,28 @@ PolicyGuard Agent intercepts AI-initiated transactions and requires human approv
 
 ## Installation
 
-### Method 1: OpenClaw (Recommended)
+### Option 1: OpenClaw Plugin (Recommended)
 
-If you're using OpenClaw, install via ClawHub:
+Install PolicyGuard as an OpenClaw plugin:
 
 ```bash
-# Install from ClawHub (when published)
-clawhub install policyguard-agent
+# Install from npm (when published)
+openclaw plugins install policyguard-agent
 
-# Or clone and place in skills directory
-git clone https://github.com/fastmist/policyguard-agent.git
-cd policyguard-agent
-mkdir -p ~/.openclaw/skills/policyguard-agent
-cp -r . ~/.openclaw/skills/policyguard-agent/
+# Or local development install
+openclaw plugins install -l /path/to/policyguard-agent
+
+# Enable the plugin
+openclaw plugins enable policyguard-agent
 ```
 
-Then configure and start:
+Configure via OpenClaw:
 ```bash
-cd ~/.openclaw/skills/policyguard-agent
-cp .env.example .env
-# Edit .env with your Hedera credentials
-npm install
-npm run dev
+openclaw config set plugins.entries.policyguard-agent.config.hederaAccountId "0.0.xxxxxx"
+openclaw config set plugins.entries.policyguard-agent.config.hederaPrivateKey "3030..."
 ```
 
-Verify in OpenClaw:
-```bash
-openclaw skills list
-# Should show: policyguard-agent
-```
-
-### Method 2: Standalone Server
+### Option 2: Standalone Server
 
 ```bash
 # Clone the repository

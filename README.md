@@ -57,28 +57,29 @@ Agent: "✅ Transaction executed - TX: 0.0.xxx - HCS: topic/0.0.xxx"
 - Node.js 18+ and npm
 - A Hedera Testnet account ([get one free](https://portal.hedera.com/register))
 
-### Option 1: OpenClaw (Recommended)
+### Option 1: OpenClaw Plugin (Recommended)
+
+Install as an OpenClaw plugin:
 
 ```bash
-# Install via ClawHub (when published)
-clawhub install policyguard-agent
+# Via npm (when published)
+openclaw plugins install policyguard-agent
 
-# Or clone to OpenClaw skills directory
-git clone https://github.com/fastmist/policyguard-agent.git ~/.openclaw/skills/policyguard-agent
-cd ~/.openclaw/skills/policyguard-agent
-npm install
-cp .env.example .env
-# Edit .env with your Hedera credentials
-npm run dev
+# Or local development install
+openclaw plugins install -l /path/to/policyguard-agent
+
+# Or clone and install
+git clone https://github.com/fastmist/policyguard-agent.git
+cd policyguard-agent
+openclaw plugins install -l .
 ```
 
-Verify installation:
+Enable in OpenClaw config:
 ```bash
-openclaw skills list
-# Should show: policyguard-agent
+openclaw plugins enable policyguard-agent
 ```
 
-### Option 2: Standalone
+### Option 2: Standalone Server
 
 ```bash
 git clone https://github.com/fastmist/policyguard-agent.git
