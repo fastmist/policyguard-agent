@@ -4,6 +4,7 @@ import { TransactionProposal, PolicyGuardDecision, AgentConfig } from './types';
 import { HCSClient } from '../hedera/hcs-client';
 import { HTSClient } from '../hedera/hts-client';
 import { assessRisk, shouldAutoApprove } from '../utils/risk-assessor';
+import { ChallengeStorage } from '../utils/challenge-storage';
 
 /**
  * PolicyGuard Interceptor - Simulates the PolicyGuard challenge/approval flow
@@ -51,6 +52,9 @@ export class PolicyGuardInterceptor {
     // 4. Create PolicyGuard challenge (simulated)
     const challengeId = `pg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    // Save to file storage for CLI persistence
+    ChallengeStorage.create(challengeId, proposal);
+    
     console.log(`🛡️ PolicyGuard Challenge created: ${challengeId}`);
     console.log(`   Proposal: ${proposal.type} | Amount: ${proposal.amount} | Risk: ${proposal.riskLevel}`);
     console.log(`   Use: /approve ${challengeId} "reason" to approve`);
@@ -95,6 +99,7 @@ export class PolicyGuardInterceptor {
    * External method to approve a challenge (called from API/cli)
    */
   async approveChallenge(challengeId: string, reason?: string): Promise<boolean> {
+    // First try in-memory
     const pending = this.pendingChallenges.get(challengeId);
     if (pending) {
       pending.resolve({
@@ -105,13 +110,16 @@ export class PolicyGuardInterceptor {
       this.pendingChallenges.delete(challengeId);
       return true;
     }
-    return false;
+    
+    // Fallback to file storage (for CLI persistence)
+    return ChallengeStorage.approve(challengeId, reason || 'Approved by user');
   }
 
   /**
    * External method to reject a challenge
    */
   async rejectChallenge(challengeId: string, reason?: string): Promise<boolean> {
+    // First try in-memory
     const pending = this.pendingChallenges.get(challengeId);
     if (pending) {
       pending.resolve({
@@ -122,7 +130,9 @@ export class PolicyGuardInterceptor {
       this.pendingChallenges.delete(challengeId);
       return true;
     }
-    return false;
+    
+    // Fallback to file storage (for CLI persistence)
+    return ChallengeStorage.reject(challengeId, reason || 'Rejected by user');
   }
 
   private async waitForDecision(
@@ -134,8 +144,24 @@ export class PolicyGuardInterceptor {
       // Store resolver for external approval
       this.pendingChallenges.set(challengeId, { resolve, reject });
 
+      // Poll file storage for CLI decisions
+      const checkInterval = setInterval(() => {
+        const stored = ChallengeStorage.get(challengeId);
+        if (stored && stored.status !== 'PENDING') {
+          clearInterval(checkInterval);
+          clearTimeout(timeout);
+          this.pendingChallenges.delete(challengeId);
+          resolve({
+            approved: stored.status === 'APPROVED',
+            challengeId,
+            reason: stored.decision?.reason || `Decision from file storage: ${stored.status}`
+          });
+        }
+      }, 500);
+
       // Timeout handling
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
+        clearInterval(checkInterval);
         if (this.pendingChallenges.has(challengeId)) {
           this.pendingChallenges.delete(challengeId);
           resolve({
@@ -158,10 +184,7 @@ export class PolicyGuardInterceptor {
   }
 
   getPendingChallenges(): Array<{ challengeId: string; proposal: TransactionProposal }> {
-    // Return list of pending challenges for UI
-    return Array.from(this.pendingChallenges.entries()).map(([id, _]) => ({
-      challengeId: id,
-      proposal: {} as TransactionProposal // Would need to store proposal reference
-    }));
+    // Return list from file storage for CLI persistence
+    return ChallengeStorage.listPending();
   }
 }
